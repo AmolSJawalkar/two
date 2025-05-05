@@ -108,22 +108,30 @@ class _ObjectGesturesWidgetState extends State<ObjectGesturesWidget> {
       if (didAddAnchor!) {
         this.anchors.add(newAnchor);
         // Add note to anchor
-        var newNode = ARNode(
-            type: NodeType.webGLB,
-            uri: 
-                "https://github.com/KhronosGroup/glTF-Sample-Assets/blob/main/Models/Duck/glTF/Duck.gltf",
-            scale: Vector3(0.2, 0.2, 0.2),
-            position: Vector3(0.0, 0.0, 0.0),
-            rotation: Vector4(1.0, 0.0, 0.0, 0.0));
+        // var newNode = ARNode(
+        //     type: NodeType.webGLB,
+        //     uri: 
+        //         "https://github.com/KhronosGroup/glTF-Sample-Models/blob/main/2.0/Duck/glTF-Binary/Duck.glb",
+        //     scale: Vector3(0.2, 0.2, 0.2),
+        //     position: Vector3(0.0, 0.0, 0.0),
+        //     rotation: Vector4(1.0, 0.0, 0.0, 0.0));
+         var newNode = ARNode(
+          type: NodeType.localGLTF2,
+          uri: "Models/Chicken_01/Chicken_01.gltf",
+          scale: Vector3(0.2, 0.2, 0.2),
+          position: Vector3(0.0, 0.0, 0.0),
+          rotation: Vector4(1.0, 0.0, 0.0, 0.0));
+
+            print("Tring to add node");
         bool? didAddNodeToAnchor =
             await this.arObjectManager!.addNode(newNode, planeAnchor: newAnchor);
         if (didAddNodeToAnchor!) {
           this.nodes.add(newNode);
         } else {
-          //this.arSessionManager!.onError("Adding Node to Anchor failed");
+          this.arSessionManager!.onError!("Adding Node to Anchor failed");
         }
       } else {
-        //this.arSessionManager!.onError("Adding Anchor failed");
+        this.arSessionManager!.onError!("Adding Anchor failed");
       }
     }
   }
@@ -145,7 +153,7 @@ class _ObjectGesturesWidgetState extends State<ObjectGesturesWidget> {
     * Uncomment the following command if you want to keep the transformations of the Flutter representations of the nodes up to date
     * (e.g. if you intend to share the nodes through the cloud)
     */
-    //pannedNode.transform = newTransform;
+    pannedNode.transform = newTransform;
   }
 
   onRotationStarted(String nodeName) {
@@ -165,6 +173,6 @@ class _ObjectGesturesWidgetState extends State<ObjectGesturesWidget> {
     * Uncomment the following command if you want to keep the transformations of the Flutter representations of the nodes up to date
     * (e.g. if you intend to share the nodes through the cloud)
     */
-    //rotatedNode.transform = newTransform;
+    rotatedNode.transform = newTransform;
   }
 }
