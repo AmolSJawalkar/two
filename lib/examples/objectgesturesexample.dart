@@ -185,18 +185,65 @@ class _ObjectGesturesWidgetState extends State<ObjectGesturesWidget> {
     print("Started rotating node $nodeName");
   }
 
-  onRotationChanged(String nodeName) {
-    print("Continued rotating node $nodeName");
+  void onRotationChanged(String nodeName, Matrix4 newTransform) {
+    print("Continued rotating node: $nodeName");
+
+    // try {
+    //   final rotatedNode = nodes.firstWhere(
+    //     (element) => element.name == nodeName,
+    //   );
+    //   rotatedNode.transform = newTransform;
+    //   print("Live transform for $nodeName: $newTransform");
+    // } catch (e) {
+    //   print("Node not found: $nodeName");
+    // }
+    final rotatedNode = nodes.firstWhere((element) => element.name == nodeName);
+
+    // Get the current position of the node (from its transform or position property)
+    Vector3 position = rotatedNode.position ?? Vector3.zero();
+
+    // Step 1: Translate to origin
+    Matrix4 toOrigin = Matrix4.translation(-position);
+
+    // Step 2: Apply the new rotation (assuming newTransform is a pure rotation matrix)
+    Matrix4 rotation = Matrix4.identity();
+    rotation.setFrom(newTransform);
+
+    // Step 3: Translate back to original position
+    Matrix4 backToPosition = Matrix4.translation(position);
+
+    // Combine: T_back * R * T_origin * original
+    Matrix4 finalTransform =
+        backToPosition * rotation * toOrigin * rotatedNode.transform;
+
+    rotatedNode.transform = finalTransform;
+
+    print("Applied centered rotation for $nodeName: $finalTransform");
   }
 
   onRotationEnded(String nodeName, Matrix4 newTransform) {
     print("Ended rotating node $nodeName");
     final rotatedNode = nodes.firstWhere((element) => element.name == nodeName);
 
-    /*
-    * Uncomment the following command if you want to keep the transformations of the Flutter representations of the nodes up to date
-    * (e.g. if you intend to share the nodes through the cloud)
-    */
-    //rotatedNode.transform = newTransform;
+    // Get the current position of the node (from its transform or position property)
+    Vector3 position = rotatedNode.position ?? Vector3.zero();
+
+    // Step 1: Translate to origin
+    Matrix4 toOrigin = Matrix4.translation(-position);
+
+    // Step 2: Apply the new rotation (assuming newTransform is a pure rotation matrix)
+    Matrix4 rotation = Matrix4.identity();
+    rotation.setFrom(newTransform);
+
+    // Step 3: Translate back to original position
+    Matrix4 backToPosition = Matrix4.translation(position);
+
+    // Combine: T_back * R * T_origin * original
+    Matrix4 finalTransform =
+        backToPosition * rotation * toOrigin * rotatedNode.transform;
+
+    rotatedNode.transform = finalTransform;
+
+    print("Applied centered rotation for $nodeName: $finalTransform");
   }
 }
