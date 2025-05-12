@@ -1,0 +1,149 @@
+{
+    "asset": {
+        "version": "2.0",
+        "generator": "Open Asset Import Library (assimp v5.4.0)"
+    },
+    "extensionsUsed": [
+        "KHR_materials_volume",
+        "FB_ngon_encoding"
+    ],
+    "accessors": [
+        {
+            "bufferView": 0,
+            "byteOffset": 0,
+            "componentType": 5126,
+            "count": 433,
+            "type": "VEC3",
+            "max": [
+                99.98307800292969,
+                100.0,
+                31.821908950805664
+            ],
+            "min": [
+                -50.0,
+                -1.94853005021508e-15,
+                -68.17809295654297
+            ]
+        },
+        {
+            "bufferView": 1,
+            "byteOffset": 0,
+            "componentType": 5126,
+            "count": 433,
+            "type": "VEC3",
+            "max": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "min": [
+                -1.0,
+                -1.0,
+                -1.0
+            ]
+        },
+        {
+            "bufferView": 2,
+            "byteOffset": 0,
+            "componentType": 5125,
+            "count": 834,
+            "type": "SCALAR",
+            "max": [
+                432
+            ],
+            "min": [
+                0
+            ]
+        }
+    ],
+    "buffers": [
+        {
+            "byteLength": 13728,
+            "uri": "BoxInBox_0.bin"
+        }
+    ],
+    "bufferViews": [
+        {
+            "buffer": 0,
+            "byteOffset": 0,
+            "byteLength": 5196,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteOffset": 5196,
+            "byteLength": 5196,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteOffset": 10392,
+            "byteLength": 3336,
+            "target": 34963
+        }
+    ],
+    "materials": [
+        {
+            "name": "x1",
+            "pbrMetallicRoughness": {
+                "baseColorFactor": [
+                    0.8500000238418579,
+                    0.8500000238418579,
+                    0.8500000238418579,
+                    1.0
+                ],
+                "metallicFactor": 0.05000000074505806,
+                "roughnessFactor": 0.5
+            },
+            "doubleSided": true
+        }
+    ],
+    "meshes": [
+        {
+            "name": "meshes[0]",
+            "primitives": [
+                {
+                    "mode": 4,
+                    "material": 0,
+                    "indices": 2,
+                    "attributes": {
+                        "POSITION": 0,
+                        "NORMAL": 1
+                    }
+                }
+            ]
+        }
+    ],
+    "nodes": [
+        {
+            "name": "BoxInBox",
+            "children": [
+                1
+            ]
+        },
+        {
+            "name": "Node0",
+            "children": [
+                2
+            ],
+            "extras": {
+                "name": "Node0"
+            }
+        },
+        {
+            "name": "Node1",
+            "mesh": 0,
+            "extras": {
+                "name": "Node1"
+            }
+        }
+    ],
+    "scenes": [
+        {
+            "nodes": [
+                0
+            ]
+        }
+    ],
+    "scene": 0
+}
