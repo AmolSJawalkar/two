@@ -178,11 +178,7 @@ class _ObjectGesturesWidgetState extends State<ObjectGesturesWidget> {
     print("Ended panning node $nodeName");
     final pannedNode = nodes.firstWhere((element) => element.name == nodeName);
 
-    /*
-    * Uncomment the following command if you want to keep the transformations of the Flutter representations of the nodes up to date
-    * (e.g. if you intend to share the nodes through the cloud)
-    */
-    //pannedNode.transform = newTransform;
+    pannedNode.transform = newTransform;
   }
 
   onRotationStarted(String nodeName) {
