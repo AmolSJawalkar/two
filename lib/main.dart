@@ -51,17 +51,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: const Text(_title)),
-        body: Column(
-          children: [
-            Text('Running on: $_platformVersion\n'),
-            Expanded(child: ExampleList()),
-          ],
-        ),
-      ),
-    );
+    return MaterialApp(home: ObjectGesturesWidget());
   }
 }
 

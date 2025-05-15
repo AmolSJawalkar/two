@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'package:ar_flutter_plugin_2/managers/ar_location_manager.dart';
 import 'package:ar_flutter_plugin_2/managers/ar_session_manager.dart';
 import 'package:ar_flutter_plugin_2/managers/ar_object_manager.dart';
@@ -27,6 +28,9 @@ class _ObjectGesturesWidgetState extends State<ObjectGesturesWidget> {
 
   List<ARNode> nodes = [];
   List<ARAnchor> anchors = [];
+  double _lastRotation = 0.0;
+  late ARNode _newNode;
+  double _currentScale = 1.0;
 
   @override
   void dispose() {
@@ -38,29 +42,98 @@ class _ObjectGesturesWidgetState extends State<ObjectGesturesWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Object Transformation Gestures')),
-      body: Container(
-        child: Stack(
-          children: [
-            ARView(
-              onARViewCreated: onARViewCreated,
-              planeDetectionConfig: PlaneDetectionConfig.horizontalAndVertical,
-            ),
-            Align(
-              alignment: FractionalOffset.bottomCenter,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: onRemoveEverything,
-                    child: Text("Remove Everything"),
-                  ),
-                ],
+      body: Column(
+        children: <Widget>[
+          Expanded(
+            child: GestureDetector(
+              onScaleUpdate: (details) {
+                // Only rotate if there is at least one node
+                if (nodes.isNotEmpty) {
+                  // Horizontal drag delta controls rotation
+                  // double rotationDelta =
+                  //     details.delta.dx * 0.001; // Adjust sensitivity as needed
+                  //_rotateLastNode(0.0);
+
+                  if (nodes.isNotEmpty) {
+                    _updateLastNodeScale(details.scale);
+                  }
+                }
+              },
+
+              // onScaleEnd: (details) {
+              //   if (nodes.isNotEmpty) {
+              //     _currentScale = nodes.last.scale?.x ?? 1.0;
+              //   }
+              // },
+              child: ARView(
+                onARViewCreated: onARViewCreated,
+                planeDetectionConfig:
+                    PlaneDetectionConfig.horizontalAndVertical,
               ),
             ),
-          ],
-        ),
+            // Align(
+            //   alignment: FractionalOffset.bottomCenter,
+            //   child: Row(
+            //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            //     children: [
+            //       ElevatedButton(
+            //         onPressed: onRemoveEverything,
+            //         child: Text("Remove Everything"),
+            //       ),
+            //     ],
+            //   ),
+            // ),
+          ),
+        ],
       ),
     );
+  }
+
+  void _updateLastNodeScale(double scaleFactor) async {
+    //on node
+    // ARNode node = nodes.last;
+    // double newScale = (_currentScale * scaleFactor).clamp(0.05, 3.0);
+
+    //using trasform
+
+    _newNode = nodes.last;
+    double scale = 1.3;
+    var _currentTrasform = _newNode.transform;
+
+    //case1
+    //_currentTrasform.scale(12, 12, 12);
+    //case2
+    // _currentTrasform.setFromTranslationRotationScale(
+    //   Vector3(0, 0, 0),
+    //   Quaternion(0, 0, 0, 0),
+    //   Vector3(1.2, 1.2, 1.2),
+    // );
+    //_newNode.transform = _currentTrasform;
+    //case3
+    final currentScale = nodes.scale ?? Vector3(1.0, 1.0, 1.0);
+    final newScale = currentScale * 12.0;
+
+    Matrix3 rotationMatrix = _newNode.rotation;
+    Quaternion q = Quaternion.fromRotation(rotationMatrix);
+    Vector3 axis = Vector3.zero();
+    // double angle = q.getAxisAngle(axis);
+    Vector4 axisAngle = Vector4(axis.x, axis.y, axis.z, 0);
+
+    await arObjectManager!.removeNode(_newNode);
+    final newNode = ARNode(
+      type: NodeType.localGLTF2,
+      uri: "Models/BoxModel/BoxInBox.gltf",
+      scale: newScale,
+      position: _newNode.position,
+      rotation: axisAngle,
+    );
+
+    await arObjectManager!.addNode(_newNode);
+    planeanchor:
+    anchors.isNotEmpty ? anchors.last : null;
+
+    nodes[nodes.length - 1] = _newNode;
+    setState(() {});
   }
 
   void onARViewCreated(
@@ -84,18 +157,22 @@ class _ObjectGesturesWidgetState extends State<ObjectGesturesWidget> {
     this.arObjectManager!.onInitialize();
 
     this.arSessionManager!.onPlaneOrPointTap = onPlaneOrPointTapped;
-    this.arObjectManager!.onPanStart = onPanStarted;
-    // this.arObjectManager!.onPanChange = (String nodeName) {
-    //   onPanChanged(nodeName, Matrix4.identity());
-    // };
-    // this.arObjectManager!.onPanEnd = (String nodeName) {
-    //   onPanEnded(nodeName, Matrix4.identity());
-    // };
-    this.arObjectManager!.onPanEnd = onPanEnded;
-    this.arObjectManager!.onRotationStart = onRotationStarted;
-    this.arObjectManager!.onRotationChange = onRotationChanged;
-    this.arObjectManager!.onRotationEnd = onRotationEnded;
   }
+
+  // double getAxisAngle(Vector3 axis) {
+  //   if (w > 1.0) {
+  //     normalize();
+  //   }
+  //   double angle = 2.0 * acos(w);
+  //   double s = sqrt(1.0 - w * w);
+
+  //   if (s < 0.0001) {
+  //     axis.setValues(1.0, 0.0, 0.0);
+  //   } else {
+  //     axis.setValues(x / s, y / s, z / s);
+  //   }
+  //   return angle;
+  // }
 
   Future<void> onRemoveEverything() async {
     /*nodes.forEach((node) {
@@ -119,29 +196,22 @@ class _ObjectGesturesWidgetState extends State<ObjectGesturesWidget> {
     bool? didAddAnchor = await arAnchorManager!.addAnchor(newAnchor);
     if (didAddAnchor!) {
       anchors.add(newAnchor);
-      // Add note to anchor
-      // var newNode = ARNode(
-      //     type: NodeType.webGLB,
-      //     uri:
-      //         "https://github.com/KhronosGroup/glTF-Sample-Models/blob/main/2.0/Duck/glTF-Binary/Duck.glb",
-      //     scale: Vector3(0.2, 0.2, 0.2),
-      //     position: Vector3(0.0, 0.0, 0.0),
-      //     rotation: Vector4(1.0, 0.0, 0.0, 0.0));
-      var newNode = ARNode(
+
+      _newNode = ARNode(
         type: NodeType.localGLTF2,
-        uri: "Models/CuboidCubePyramid/3dpea.gltf",
+        uri: "Models/BoxModel/BoxInBox.gltf",
         scale: Vector3(0.2, 0.2, 0.2),
         position: Vector3(0.0, 0.0, 0.0),
         rotation: Vector4(1.0, 0.0, 0.0, 0.0),
       );
 
-      print("Tring to add node");
+      print("Trying to add node");
       bool? didAddNodeToAnchor = await arObjectManager!.addNode(
-        newNode,
+        _newNode,
         planeAnchor: newAnchor,
       );
       if (didAddNodeToAnchor!) {
-        nodes.add(newNode);
+        nodes.add(_newNode);
       } else {
         arSessionManager!.onError!("Adding Node to Anchor failed");
       }
@@ -149,101 +219,8 @@ class _ObjectGesturesWidgetState extends State<ObjectGesturesWidget> {
       arSessionManager!.onError!("Adding Anchor failed");
     }
   }
+}
 
-  onPanStarted(String nodeName) {
-    print("Started panning node $nodeName");
-  }
-
-  void onPanChanged(String nodeName, Matrix4 newTransform) {
-    print("Continued panning node: $nodeName");
-
-    try {
-      // Find the node being panned
-      final pannedNode = nodes.firstWhere(
-        (element) => element.name == nodeName,
-      );
-
-      // Update the node's transform with the new transformation matrix
-      pannedNode.transform = newTransform;
-
-      // Optional: Log the new transformation matrix for debugging
-      print("New transform for $nodeName: $newTransform");
-    } catch (e) {
-      // Handle the case where the node is not found
-      print("Node not found: $nodeName");
-    }
-  }
-
-  onPanEnded(String nodeName, Matrix4 newTransform) {
-    print("Ended panning node $nodeName");
-    final pannedNode = nodes.firstWhere((element) => element.name == nodeName);
-
-    pannedNode.transform = newTransform;
-  }
-
-  onRotationStarted(String nodeName) {
-    print("Started rotating node $nodeName");
-  }
-
-  void onRotationChanged(String nodeName, Matrix4 newTransform) {
-    print("Continued rotating node: $nodeName");
-
-    // try {
-    //   final rotatedNode = nodes.firstWhere(
-    //     (element) => element.name == nodeName,
-    //   );
-    //   rotatedNode.transform = newTransform;
-    //   print("Live transform for $nodeName: $newTransform");
-    // } catch (e) {
-    //   print("Node not found: $nodeName");
-    // }
-    final rotatedNode = nodes.firstWhere((element) => element.name == nodeName);
-
-    // Get the current position of the node (from its transform or position property)
-    Vector3 position = rotatedNode.position ?? Vector3.zero();
-
-    // Step 1: Translate to origin
-    Matrix4 toOrigin = Matrix4.translation(-position);
-
-    // Step 2: Apply the new rotation (assuming newTransform is a pure rotation matrix)
-    Matrix4 rotation = Matrix4.identity();
-    rotation.setFrom(newTransform);
-
-    // Step 3: Translate back to original position
-    Matrix4 backToPosition = Matrix4.translation(position);
-
-    // Combine: T_back * R * T_origin * original
-    Matrix4 finalTransform =
-        backToPosition * rotation * toOrigin * rotatedNode.transform;
-
-    rotatedNode.transform = finalTransform;
-
-    print("Applied centered rotation for $nodeName: $finalTransform");
-  }
-
-  onRotationEnded(String nodeName, Matrix4 newTransform) {
-    print("Ended rotating node $nodeName");
-    final rotatedNode = nodes.firstWhere((element) => element.name == nodeName);
-
-    // Get the current position of the node (from its transform or position property)
-    Vector3 position = rotatedNode.position ?? Vector3.zero();
-
-    // Step 1: Translate to origin
-    Matrix4 toOrigin = Matrix4.translation(-position);
-
-    // Step 2: Apply the new rotation (assuming newTransform is a pure rotation matrix)
-    Matrix4 rotation = Matrix4.identity();
-    rotation.setFrom(newTransform);
-
-    // Step 3: Translate back to original position
-    Matrix4 backToPosition = Matrix4.translation(position);
-
-    // Combine: T_back * R * T_origin * original
-    Matrix4 finalTransform =
-        backToPosition * rotation * toOrigin * rotatedNode.transform;
-
-    rotatedNode.transform = finalTransform;
-
-    print("Applied centered rotation for $nodeName: $finalTransform");
-  }
+extension on List<ARNode> {
+  get scale => null;
 }
